@@ -2,6 +2,7 @@
 #include <stack>
 #include <algorithm>
 #include <sstream>
+#include "parser.h"
 
 int precedence(char op){
     if(op == '<') return 1;
