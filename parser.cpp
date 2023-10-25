@@ -23,6 +23,7 @@ void tokenize (const string &s, struct Command* cmd) {
                 continue;
             }
             if (item[i] == '|') {
+                cmd->operations->push_back(item[i]);
                 cmd->hasPipe = true;
                 continue;
             }

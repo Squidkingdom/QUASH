@@ -7,6 +7,7 @@
 using namespace std;
 typedef struct Command {
         vector<string>* tokens = new vector<string>;
+        vector<string>* operations = new vector<string>;
         bool isBackground = false;
         bool hasPipe = false;
         bool hasRead = false;
