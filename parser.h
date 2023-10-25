@@ -5,5 +5,16 @@
 #include <sstream>
 #include <stack>
 using namespace std;
+typedef struct Command {
+        vector<string>* tokens = new vector<string>;
+        bool isBackground = false;
+        bool hasPipe = false;
+        bool hasRead = false;
+        bool hasRedirect = false;
+}Command;
 
-vector<string> split (const string &s, char delim);
+void tokenize (const string &s, struct Command* cmd);
+        //command
+        //is background
+
+//create a structure to hold the tokens, and flags
