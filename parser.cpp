@@ -1,46 +1,62 @@
 #include "parser.h"
  
 // int main() {
-//     //split the string into tokens by white space
-//     //https://www.geeksforgeeks.org/infix-to-prefix-conversion-using-two-stacks/
 //     string TSTCMD = "cat < files.txt | grep '*.c' > out.txt &";
-//     struct Command* cmd = new Command;
-//     tokenize(TSTCMD, cmd);
+//     vector<struct Command> cmd;
+//     tokenize(TSTCMD, &cmd);
+
 //     printf("Tokens: \n");
     
 // }
 
-void tokenize (const string &s, struct Command* cmd) {
-    stringstream ss (s);
-    string item;
 
-    while (getline (ss, item, '\n')) {
+void tokenize (string s, vector<struct Command>* linecmd) {
+    bool isBackground = false;
+    vector<string> subcmds;
+    size_t found = s.find('&');
+    if(found != string::npos) {
+        isBackground = true;
+        s.erase(found, 1);
+    }
+    subcmds = split(s, '|');
+
+    
+    //TODO EnvVar
+    for (int k = 0; k < subcmds.size(); k++) {
+        auto item = subcmds[k];
+        struct Command* cmd = new Command;
+        cmd->isBackground = isBackground;
         for (int i = 0; i < item.length(); i++) {
-            if (item[i] == '&') {
-                cmd->isBackground = true;
-                item.erase(i, 1);
-                i=-1;
-                continue;
-            }
-            if (item[i] == '|') {
-                cmd->operations->push_back(item[i]);
-                cmd->hasPipe = true;
-                continue;
-            }
             if (item[i] == '<') {
                 cmd->hasRead = true;
-                continue;
+                item.erase(0, i+1);
+                for (int j = 0; j < item.length(); j++) {
+                    if (item[j] == ' ') {
+                        char* temp = (char*)calloc(j, sizeof(char));
+                        item.copy(temp, j, 0);
+                        cmd->readFrom = temp;
+                        item.erase(0, j+1);
+                        i=-1;
+                        continue;
+                    }
+                }
             }
-            if (item[i] == '>') {
+            if (item[i] == '>' && k == subcmds.size()-1) {
+                if (item[i+1] == '>') {
+                    cmd->redirectAppend = true;
+                    cmd->redirectTo = trim(split(item, '>')[2], ' ');
+                    break;
+                }
                 cmd->hasRedirect = true;
-                continue;
+                cmd->redirectTo = trim(split(item, '>')[1], ' ');
+                break;
             }
             if (item[i] == '\'' || item[i] == '\"') {
                 for (int j = (i+1); j < item.length(); j++) {
                     if (item[j] == '\'' || item[j] == '\"') {
-                        char* temp = (char*)malloc(sizeof(char)*j-1);
+                        char* temp = (char*)calloc(j-1, sizeof(char));
                         item.copy(temp, j-1, 1);
-                        cmd->tokens->push_back (temp);
+                        cmd->args->push_back (temp);
                         item.erase(0, j+1);
                         i=-1;
                         break;
@@ -49,15 +65,43 @@ void tokenize (const string &s, struct Command* cmd) {
                 continue;
             }
             if (item[i] == ' ') {
-                char* temp = (char*)malloc(sizeof(char)*i);
+                char* temp = (char*)calloc(i, sizeof(char));
                 item.copy (temp, i, 0);
                 item.erase(0, i+1);
                 if (i > 0)
-                    cmd->tokens->push_back(temp);
+                    cmd->args->push_back(temp);
                 delete temp;
                 i=-1;
 
             }
         }
+        linecmd->push_back(*cmd);
     }
+}
+
+vector<string> split (const string &s, char delim) {
+    vector<string> result;
+    stringstream ss (s);
+    string item;
+
+    while (getline (ss, item, delim)) {
+        item = trim(item, ' ');
+        result.push_back (item);
+    }
+
+    return result;
+}
+
+string trim(string s, char delim) {
+    int i = s.length();
+    if (i == 0) {
+        return s;
+    }
+    if (s[0] == delim) {
+        s.erase(0, 1);
+    }
+    if (s[i-1] == delim) {
+        s.erase(i-1, 1);
+    }
+    return s;
 }

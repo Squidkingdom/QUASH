@@ -6,15 +6,18 @@
 #include <stack>
 using namespace std;
 typedef struct Command {
-        vector<string>* tokens = new vector<string>;
-        vector<string>* operations = new vector<string>;
-        bool isBackground = false;
-        bool hasPipe = false;
+        vector<string>* args = new vector<string>;
+        bool isBackground = false; // unilateral between all subcmds in same linecmd
         bool hasRead = false;
-        bool hasRedirect = false;
-}Command;
+        string readFrom= "";
+        bool hasRedirect = false; //first subcmd cannot have hasRedirect.
+        bool redirectAppend = false;
+        string redirectTo = "";
+    }Command;
 
-void tokenize (const string &s, struct Command* cmd);
+void tokenize (string s, vector<struct Command>* linecmd);
+vector<string> split (const string &s, char delim);
+string trim(string s, char delim);
         //command
         //is background
 
