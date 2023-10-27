@@ -24,14 +24,14 @@ int main() {
     bool run = true;
     mkdir("/tmp/Quash", 0777);
     while(run) {
+        usleep(2000);
         std::string userInput = "";
-        std::cout<<"[QUASH]$ ";
+        flush(std::cout);
+        std::cout<<"[QUASHH]$ ";
         std::getline(std::cin, userInput);
-        vector<struct Command>* lineCmd;
-        tokenize(userInput, lineCmd);
+        vector<struct Command> lineCmd;
+        tokenize(userInput, &lineCmd);
         setupIPC(lineCmd);
-
-
     }
 
     return 0;

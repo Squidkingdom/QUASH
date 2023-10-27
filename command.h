@@ -30,6 +30,6 @@ typedef struct job {
 #define WILL_PIPE (nCmds > 1) && (i != nCmds-1) && !cmd.hasRedirect && !cmd.redirectAppend
 
 void execute(struct Command cmd);
-void setupIPC(vector<struct Command>* lineCmd);
+void setupIPC(vector<struct Command> lineCmd);
 #endif
 
