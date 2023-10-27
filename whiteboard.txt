@@ -1,0 +1,10 @@
+echo
+pwd -
+cd -
+export
+EnvVar
+jobs
+kill
+
+
+Valgrind check

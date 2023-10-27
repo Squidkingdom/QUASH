@@ -66,17 +66,46 @@ void tokenize (string s, vector<struct Command>* linecmd) {
             }
             if (item[i] == ' ') {
                 char* temp = (char*)calloc(i, sizeof(char));
-                item.copy (temp, i, 0);
+                item.copy(temp, i, 0);
                 item.erase(0, i+1);
-                if (i > 0)
-                    cmd->args->push_back(temp);
-                delete temp;
+                if (i > 0) {
+                    string tempStr(temp);
+                    if (tempStr.find('$') != string::npos) {
+                        cmd->args->push_back(expandEnvironmentVariables(tempStr));
+                    }
+                    else {
+                        cmd->args->push_back(temp);
+                    }
+                }
                 i=-1;
-
             }
         }
         linecmd->push_back(*cmd);
     }
+}
+
+string expandEnvironmentVariables(const string& input) {
+    string result = input;
+    size_t sPos = 0;
+
+    while((sPos = result.find('$', sPos)) != string::npos) {
+        size_t ePos = sPos + 1;
+        while(ePos < result.size() && isupper(result[ePos])) {
+            ++ePos;
+        }
+        size_t len = ePos - sPos;
+        string envName = result.substr(sPos + 1, len - 1);
+        const char* envVal = getenv(envName.c_str());
+
+        if(envVal != nullptr) {
+            result.replace(sPos, len, envVal);
+            sPos += strlen(envVal);
+        } else {
+            sPos = ePos;
+        }
+    }
+
+    return result;
 }
 
 vector<string> split (const string &s, char delim) {

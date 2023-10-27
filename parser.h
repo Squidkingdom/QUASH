@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <cstring>
 #include <stack>
 using namespace std;
 typedef struct Command {
@@ -16,6 +17,7 @@ typedef struct Command {
     }Command;
 
 void tokenize (string s, vector<struct Command>* linecmd);
+string expandEnvironmentVariables(const string& input);
 vector<string> split (const string &s, char delim);
 string trim(string s, char delim);
         //command

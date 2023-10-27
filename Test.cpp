@@ -3,7 +3,16 @@
 void setupIPC(vector<struct Command>* lineCmd);
 
 int main() {
-    string TSTCMD = "cat -n < animals | grep '*.c' > out.txt";
+
+    printf("Loaded: $");
+    //read from c-in or load default test cmd
+    string TSTCMD;
+    getline(cin, TSTCMD);
+    if (TSTCMD == "") {
+        TSTCMD = "cat < files.txt > $HOME/out.txt";
+    }
+    printf("%s", expandEnvironmentVariables(TSTCMD));
+    exit(0);
 
     // string TSTCMD = "cat < files.txt | grep '*.c' > out.txt &";
     vector<struct Command> linecmd;

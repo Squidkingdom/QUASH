@@ -16,4 +16,5 @@
 #define WILL_PIPE (nCmds > 1) && (i != nCmds-1) && !cmd.hasRedirect && !cmd.redirectAppend
 
 void execute(struct Command cmd);
+void setup2(vector<struct Command> *lineCmd);
 
