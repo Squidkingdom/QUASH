@@ -3,7 +3,7 @@
 void setupIPC(vector<struct Command>* lineCmd);
 
 int main() {
-    string TSTCMD = "cat -n < files.txt > out.txt";
+    string TSTCMD = "cat -n < animals | grep '*.c' > out.txt";
 
     // string TSTCMD = "cat < files.txt | grep '*.c' > out.txt &";
     vector<struct Command> linecmd;

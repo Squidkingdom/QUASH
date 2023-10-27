@@ -30,10 +30,10 @@ void tokenize (string s, vector<struct Command>* linecmd) {
             if (item[i] == '<') {
                 cmd->hasRead = true;
                 item.erase(0, i+1);
-                for (int j = 0; j < item.length(); j++) {
-                    if (item[j] == ' ') {
+                for (int j = 1; j < item.length(); j++) {
+                    if (item[j] == ' ' || j == item.length()-1) {
                         char* temp = (char*)calloc(j, sizeof(char));
-                        item.copy(temp, j, 0);
+                        item.copy(temp, j, 1);
                         cmd->readFrom = temp;
                         item.erase(0, j+1);
                         i=-1;

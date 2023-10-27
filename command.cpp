@@ -17,7 +17,7 @@ void setupIPC(vector<struct Command>* lineCmd) {
     vector<pid_t> pid(nCmds);
     vector<int[2]> fd(nCmds-1);
 
-    for (int i=0; i<nCmds - 1; i++) {
+    for (int i=0; i< nCmds - 1; i++) {
         pipe(fd[i]);
     }
 
@@ -32,15 +32,15 @@ void setupIPC(vector<struct Command>* lineCmd) {
 
             //pipe to next process
             if (HAS_PIPE){
-                dup2(fd[i-1][0], STDIN_FILENO);
-                // close(fd[i-1][1]);
-                close(fd[i-1][0]);
+                // dup2(fd[i-1][0], STDIN_FILENO);
+                char buf[1024];
+                int n = read(fd[i-1][0], buf, 1024);
+                printf("read %d bytes\n", n);
+                printf("read: %s\n", buf);
+                printf("has pipe");
             }
             if (WILL_PIPE){
-                dup2(fd[i][1], STDOUT_FILENO); //dup write end
-                close(fd[i][1]); //close write end
-                // close(fd[i][0]); //close read end
-                // execvp()
+                dup2(fd[i][1], STDOUT_FILENO);
             }
 
             if (cmd.hasRead) {
@@ -69,14 +69,27 @@ void setupIPC(vector<struct Command>* lineCmd) {
                 close(fdout);
             }
             execute(cmd);
+            exit(0);
         }
         else {
+            //parent code
             struct Command cmd = lineCmd->at(i);
-            wait(NULL);
-            for (auto fd : fd) {
-                close(fd[0]);
-                close(fd[1]);
+            if (HAS_PIPE){
+                close(fd[i-1][0]);
             }
+            if (WILL_PIPE){
+                close(fd[i][1]);
+                //read from the pipe to see if wer sent anything
+                
+            }
+            printf("Waiting...\n");
+            waitpid(pid[i], NULL, 0);
+            char buf[1024];
+                int n = read(fd[i][0], buf, 1024);
+                printf("read %d bytes\n", n);
+                printf("read: %s\n", buf);
+
+
         }
     }
 }
