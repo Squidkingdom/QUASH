@@ -27,7 +27,7 @@ int main() {
         usleep(2000);
         std::string userInput = "";
         flush(std::cout);
-        std::cout<<"[QUASHH]$ ";
+        std::cout<<tag();
         std::getline(std::cin, userInput);
         vector<struct Command> lineCmd;
         tokenize(userInput, &lineCmd);

@@ -19,31 +19,37 @@ struct Process
 {
   int id;
   int pid;
+  bool isBackground;
 };
 
 static int totalJobs;
 static int nextId;
 static struct Process myJobs[5];
 static string fifoDir = "/tmp/Quash/";
+string tag(){
+    usleep(2000);
+    return "[QUASHH]$ ";
+}
 
 void handleChildDone(int s){
     pid_t pid;
     int status;
     // printf("handling child done\n");
     while((pid = waitpid(-1, &status, WNOHANG)) > 0){
+        // printf("Job with pid %d done\n", pid);
         for(int i = 0; i < totalJobs; i++){
             if(myJobs[i].pid == pid){
-                // printf("Job with pid %d done\n", pid);
                 string fifo = fifoDir + "/" + to_string(myJobs[i].id);
                 string line;
                 ifstream fifoStream(fifo);
-                
+            
                 while (getline(fifoStream, line)) {
                     cout << line << endl;
                 }
                 fifoStream.close();
                 remove(fifo.c_str());
-                std::cout << "[" << myJobs[i].id << "] " << myJobs[i].pid << " Done" << std::endl;
+                std::cout << "[" << myJobs[i].id << "] " << myJobs[i].pid << " Done" << std::endl << tag();
+                flush(std::cout);
 
                 myJobs[i].pid = 0;
                 myJobs[i].id = 0;
@@ -147,13 +153,16 @@ void clearFifo(){
 
 void setupIPC(vector<struct Command> lineCmd) {
     pid_t lcPid;
+    int bg = lineCmd[0].isBackground;
+    if (bg) {
+        signal(SIGCHLD, handleChildDone);
 
+    }
     
-    signal(SIGCHLD, handleChildDone);
     lcPid = fork();
     if (lcPid == 0) {
         signal(SIGCHLD, SIG_DFL);
-        if (lineCmd[0].isBackground) {
+        if (bg) {
             string fifo = (fifoDir + to_string(nextId));
             clearFifo();
             //I actually dont make it a fifo, but a file
@@ -179,14 +188,15 @@ void setupIPC(vector<struct Command> lineCmd) {
         else{
             myJobs[totalJobs].id = nextId;
             myJobs[totalJobs].pid = lcPid;
+            std::cout << "[" << nextId << "] PID: " << lcPid << std::endl;
             totalJobs++;
             nextId++;
-            std::cout << "[" << nextId << "] PID: " << lcPid << std::endl;
+            
         }
     }
 }
 
-void echo(std::vector<std::string> args){
+void echo(std::vector<std::string> args){  
     for(int i = 1; i < args.size(); i++){
         std::cout << args[i] << " ";
     }
@@ -214,6 +224,7 @@ void jobs(){
 void kill(std::vector<std::string> args){
 
 }
+
 void exportVar(std::vector<std::string> args){
     if(args.size() == 1){
         std::cout << "Error: No arguments given" << std::endl;
@@ -223,6 +234,7 @@ void exportVar(std::vector<std::string> args){
         setenv(var.c_str(), val.c_str(), 1);
     }
 }
+
 void execute(struct Command cmd){
     std::string bin = cmd.args->at(0);
     if (bin == "echo") {

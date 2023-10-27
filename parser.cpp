@@ -69,7 +69,8 @@ void tokenize (string s, vector<struct Command>* linecmd) {
             //TODO FIX SINGLE COMMANDS
             if (item[i] == ' ' || i == item.length()-1) {
                 char* temp = (char*)calloc(i, sizeof(char));
-                item.copy(temp, i, 0);
+                int lastCharOffset = (i == item.length()-1);
+                item.copy(temp, i + lastCharOffset, 0);
                 item.erase(0, i+1);
                 if (i > 0) {
                     string tempStr(temp);
