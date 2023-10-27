@@ -1,3 +1,5 @@
+#ifndef PARSER_H
+#define PARSER_H
 #include <string>
 #include <iostream>
 #include <vector>
@@ -24,3 +26,4 @@ string trim(string s, char delim);
         //is background
 
 //create a structure to hold the tokens, and flags
+#endif

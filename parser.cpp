@@ -35,6 +35,7 @@ void tokenize (string s, vector<struct Command>* linecmd) {
                         char* temp = (char*)calloc(j, sizeof(char));
                         item.copy(temp, j, 1);
                         cmd->readFrom = temp;
+                        delete temp;
                         item.erase(0, j+1);
                         i=-1;
                         continue;
@@ -57,6 +58,7 @@ void tokenize (string s, vector<struct Command>* linecmd) {
                         char* temp = (char*)calloc(j-1, sizeof(char));
                         item.copy(temp, j-1, 1);
                         cmd->args->push_back (temp);
+                        delete temp;
                         item.erase(0, j+1);
                         i=-1;
                         break;
@@ -64,7 +66,8 @@ void tokenize (string s, vector<struct Command>* linecmd) {
                 }
                 continue;
             }
-            if (item[i] == ' ') {
+            //TODO FIX SINGLE COMMANDS
+            if (item[i] == ' ' || i == item.length()-1) {
                 char* temp = (char*)calloc(i, sizeof(char));
                 item.copy(temp, i, 0);
                 item.erase(0, i+1);
@@ -76,7 +79,9 @@ void tokenize (string s, vector<struct Command>* linecmd) {
                     else {
                         cmd->args->push_back(temp);
                     }
+
                 }
+                delete temp;
                 i=-1;
             }
         }

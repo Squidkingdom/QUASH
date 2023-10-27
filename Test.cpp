@@ -1,6 +1,6 @@
 #include "parser.h"
 #include "command.h"
-void setupIPC(vector<struct Command>* lineCmd);
+
 
 int main() {
 

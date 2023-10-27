@@ -1,10 +1,17 @@
 echo
 pwd -
 cd -
-export
-EnvVar
+export -
+EnvVar -
 jobs
 kill
 
 
 Valgrind check
+
+struct job {
+    pid_t pid;
+    string filename;
+}
+
+fork immediately

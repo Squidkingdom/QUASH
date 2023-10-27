@@ -7,89 +7,134 @@
 #include <vector>
 #include <cstring>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <cstdlib>
 #include "parser.h"
 #include "command.h"
 
 
-void setupIPC(vector<struct Command>* lineCmd) {
-    size_t nCmds = lineCmd->size();
-    vector<pid_t> pid(nCmds);
-    vector<int[2]> fd(nCmds-1);
 
-    for (int i=0; i< nCmds - 1; i++) {
-        pipe(fd[i]);
+struct Process
+{
+  int id;
+  int pid;
+};
+
+static int totalJobs;
+static int nextId;
+static struct Process myJobs[5];
+static string fifoDir = "/tmp/Quash/";
+
+void handleChildDone(int s){
+    pid_t pid;
+    int status;
+    while((pid = waitpid(-1, &status, WNOHANG)) > 0){
+        for(int i = 0; i < totalJobs; i++){
+            if(myJobs[i].pid == pid){
+                std::cout << "[" << myJobs[i].id << "] " << myJobs[i].pid << " Done" << std::endl;
+                myJobs[i].pid = 0;
+                myJobs[i].id = 0;
+            }
+        }
     }
 
+}
 
-    for (int i=0; i<nCmds; i++) {
-        pid[i] = fork();
+void setupIPC(vector<struct Command> *lineCmd) {
+    pid_t lcPid;
+    lcPid = fork();
+    signal(SIGCHLD, handleChildDone);
+    if (lcPid == 0) {
+        size_t nCmds = lineCmd->size();
+        vector<pid_t> pid(nCmds);
+        vector<int[2]> fd(nCmds-1);
+
+        for (int i=0; i< nCmds - 1; i++) {
+            pipe(fd[i]);
+        }
 
         
-        if (pid[i] == 0){
-            //do child stuff
-            struct Command cmd = lineCmd->at(i);
 
-            //pipe to next process
-            if (HAS_PIPE){
-                // dup2(fd[i-1][0], STDIN_FILENO);
-                char buf[1024];
-                int n = read(fd[i-1][0], buf, 1024);
-                printf("read %d bytes\n", n);
-                printf("read: %s\n", buf);
-                printf("has pipe");
-            }
-            if (WILL_PIPE){
-                dup2(fd[i][1], STDOUT_FILENO);
-            }
+        for (int i=0; i<nCmds; i++) {
+            pid[i] = fork();
 
-            if (cmd.hasRead) {
-                int fdin = 0;
-                fdin = open(cmd.readFrom.c_str(), O_RDONLY);
-                //error check file open
-                if (fdin == -1) {
-                    std::cerr << "Error: Cannot open file: " << cmd.readFrom << std::endl;
-                    exit(1);
+            
+            if (pid[i] == 0){
+                //do child stuff
+                struct Command cmd = lineCmd->at(i);
+
+                //pipe to next process
+                if (HAS_PIPE){
+                    // dup2(fd[i-1][0], STDIN_FILENO);
+                    char buf[1024];
+                    int n = read(fd[i-1][0], buf, 1024);
+                    printf("read %d bytes\n", n);
+                    printf("read: %s\n", buf);
+                    printf("has pipe");
                 }
-                dup2(fdin, STDIN_FILENO);
-                close(fdin);
-            }
-            if(cmd.hasRedirect) {
-                int fdout = 0;
-                fdout = open(cmd.redirectTo.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
-                dup2(fdout, STDOUT_FILENO);
-                //execute
-                close(fdout);
-            }
-            if (cmd.redirectAppend) {
-                int fdout = 0;
-                fdout = open(cmd.redirectTo.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
-                dup2(fdout, STDOUT_FILENO);
-                //execute
-                close(fdout);
-            }
-            execute(cmd);
-            exit(0);
-        }
-        else {
-            //parent code
-            struct Command cmd = lineCmd->at(i);
-            if (HAS_PIPE){
-                close(fd[i-1][0]);
-            }
-            if (WILL_PIPE){
-                close(fd[i][1]);
-                //read from the pipe to see if wer sent anything
+                if (WILL_PIPE){
+                    dup2(fd[i][1], STDOUT_FILENO);
+                }
+
+                if (cmd.hasRead) {
+                    int fdin = 0;
+                    fdin = open(cmd.readFrom.c_str(), O_RDONLY);
+                    //error check file open
+                    if (fdin == -1) {
+                        std::cerr << "Error: Cannot open file: " << cmd.readFrom << std::endl;
+                        exit(1);
+                    }
+                    dup2(fdin, STDIN_FILENO);
+                    close(fdin);
+                }
+                if(cmd.hasRedirect) {
+                    int fdout = 0;
+                    fdout = open(cmd.redirectTo.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0777);
+                    dup2(fdout, STDOUT_FILENO);
+                    //execute
+                    close(fdout);
+                }
+                if (cmd.redirectAppend) {
+                    int fdout = 0;
+                    fdout = open(cmd.redirectTo.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0777);
+                    dup2(fdout, STDOUT_FILENO);
+                    close(fdout);
+                }
+                if (cmd.isBackground && i == nCmds-1 && !cmd.hasRedirect && !cmd.redirectAppend) {
+                    char buf[50];
+                    sprintf(buf, "%s/%d", fifoDir, getpid());
+                    mkfifo(buf, 0777);
+                    int fifoFD = open(buf, O_WRONLY);
+                    dup2(fifoFD, STDOUT_FILENO);
+                }
+                
+                execute(cmd);
                 
             }
-            printf("Waiting...\n");
-            waitpid(pid[i], NULL, 0);
-            char buf[1024];
-                int n = read(fd[i][0], buf, 1024);
-                printf("read %d bytes\n", n);
-                printf("read: %s\n", buf);
-
-
+            else {
+                //parent code
+                struct Command cmd = lineCmd->at(i);
+                if (HAS_PIPE){
+                    close(fd[i-1][0]);
+                }
+                if (WILL_PIPE){
+                    close(fd[i][1]);
+                }
+                waitpid(pid[i], NULL, 0);
+            }
+        }
+    }
+    else {
+        //parent code
+        if (lineCmd->at(0).isBackground){
+            waitpid(lcPid, NULL, 0);
+        }
+        else{
+            myJobs[totalJobs].id = nextId;
+            myJobs[totalJobs].pid = lcPid;
+            totalJobs++;
+            nextId++;
+            std::cout << "[" << nextId << "] PID: " << lcPid << std::endl;
         }
     }
 }
