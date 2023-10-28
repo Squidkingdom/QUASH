@@ -5,6 +5,7 @@ export -
 EnvVar -
 jobs
 kill
+exit/quit - not working
 
 
 Valgrind check

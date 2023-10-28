@@ -20,6 +20,7 @@ struct Process
   int id;
   int pid;
   bool isBackground;
+  string cmd = "";
 };
 
 static int totalJobs;
@@ -186,6 +187,13 @@ void setupIPC(vector<struct Command> lineCmd) {
             waitpid(lcPid, NULL, 0);
         }
         else{
+            for(int i=0; i<lineCmd.size(); i++) {
+                for(int j=0; j<lineCmd[i].args->size(); j++) {
+                    myJobs[totalJobs].cmd.append(" ");
+                    myJobs[totalJobs].cmd.append(lineCmd[i].args->at(j));//append each piece of the command
+                }
+            }
+            myJobs[totalJobs].cmd.append(" &");
             myJobs[totalJobs].id = nextId;
             myJobs[totalJobs].pid = lcPid;
             std::cout << "[" << nextId << "] PID: " << lcPid << std::endl;
@@ -207,7 +215,10 @@ void cd(std::vector<std::string> args){
     if(args.size() == 1){
         chdir(getenv("HOME"));
     }else{
-        chdir(args[1].c_str());
+        int test = 0;
+        test = chdir(args[1].c_str());
+        std::cout<<args[1]<<endl;
+        std::cout<<test<<endl;
     }
 }
 
@@ -218,11 +229,13 @@ void pwd(){
 }
 
 void jobs(){
-
+    for(int i=0; i<totalJobs; i++) {
+        std::cout << "[" << myJobs[i].id << "] " << myJobs[i].pid << myJobs[i].cmd << std::endl;
+    }
 }
 
 void kill(std::vector<std::string> args){
-
+    kill(stoi(args.at(2)), stoi(args.at(1)));
 }
 
 void exportVar(std::vector<std::string> args){
