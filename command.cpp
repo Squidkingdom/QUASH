@@ -152,8 +152,22 @@ void clearFifo(){
     }
 }
 
+void cd(std::vector<std::string> args){
+    if(args.size() == 1){
+        chdir(getenv("HOME"));
+    }else{
+        chdir(args[1].c_str());
+    }
+}
+
 void setupIPC(vector<struct Command> lineCmd) {
     pid_t lcPid;
+    if (lineCmd[0].args->at(0) == "exit" || lineCmd[0].args->at(0) == "quit") {
+        exit(0);
+    }
+    if (lineCmd[0].args->at(0) == "cd") {//calling cd at the start because it only changes dir of current process so parent must do it
+        cd(*lineCmd[0].args);
+    }
     int bg = lineCmd[0].isBackground;
     if (bg) {
         signal(SIGCHLD, handleChildDone);
@@ -206,20 +220,18 @@ void setupIPC(vector<struct Command> lineCmd) {
 
 void echo(std::vector<std::string> args){  
     for(int i = 1; i < args.size(); i++){
-        std::cout << args[i] << " ";
+        if (args[i][0] == '$') {
+            string envVar = "";
+            envVar = getenv(args[i].erase(0, 1).c_str());
+            if (getenv(args[i].erase(0, 1).c_str()) == NULL) {
+                std::cout<<"Environment Variable not found"<<" ";
+            }
+            std::cout<<envVar<<" ";
+        } else {
+            std::cout << args[i] << " ";
+        }
     }
     std::cout << std::endl;
-}
-
-void cd(std::vector<std::string> args){
-    if(args.size() == 1){
-        chdir(getenv("HOME"));
-    }else{
-        int test = 0;
-        test = chdir(args[1].c_str());
-        std::cout<<args[1]<<endl;
-        std::cout<<test<<endl;
-    }
 }
 
 void pwd(){

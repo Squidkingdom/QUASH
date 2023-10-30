@@ -13,6 +13,10 @@
 void tokenize (string s, vector<struct Command>* linecmd) {
     bool isBackground = false;
     vector<string> subcmds;
+    size_t comment = s.find('#');
+    if(comment != string::npos) {
+        s.erase(comment, s.size() - comment);
+    }
     size_t found = s.find('&');
     if(found != string::npos) {
         isBackground = true;

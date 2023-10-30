@@ -16,3 +16,8 @@ struct job {
 }
 
 fork immediately
+
+
+#comments dont work -- fixed
+echo $ENVVAR doesn't work
+quit and exit dont work--fixed most likely
