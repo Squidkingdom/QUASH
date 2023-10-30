@@ -160,8 +160,22 @@ void cd(std::vector<std::string> args){
     }
 }
 
+void exportVar(std::vector<std::string> args){
+    if(args.size() == 1){
+        std::cout << "Error: No arguments given" << std::endl;
+    }else{
+        vector<string> subArgs = split(args[1], '=');
+        // std::string var = args[1];
+        // std::string val = args[2];
+        setenv(subArgs[0].c_str(), subArgs[1].c_str(), 1);
+    }
+}
+
 void setupIPC(vector<struct Command> lineCmd) {
     pid_t lcPid;
+    if (lineCmd[0].args->at(0) == "export") {
+        exportVar(*lineCmd[0].args);
+    }
     if (lineCmd[0].args->at(0) == "exit" || lineCmd[0].args->at(0) == "quit") {
         exit(0);
     }
@@ -223,9 +237,9 @@ void echo(std::vector<std::string> args){
         if (args[i][0] == '$') {
             string envVar = "";
             envVar = getenv(args[i].erase(0, 1).c_str());
-            if (getenv(args[i].erase(0, 1).c_str()) == NULL) {
-                std::cout<<"Environment Variable not found"<<" ";
-            }
+            // if (getenv(args[i].erase(0, 1).c_str()) == NULL) {
+            //     std::cout<<"Environment Variable not found"<<" ";
+            // }
             std::cout<<envVar<<" ";
         } else {
             std::cout << args[i] << " ";
@@ -250,15 +264,15 @@ void kill(std::vector<std::string> args){
     kill(stoi(args.at(2)), stoi(args.at(1)));
 }
 
-void exportVar(std::vector<std::string> args){
-    if(args.size() == 1){
-        std::cout << "Error: No arguments given" << std::endl;
-    }else{
-        std::string var = args[1];
-        std::string val = args[2];
-        setenv(var.c_str(), val.c_str(), 1);
-    }
-}
+// void exportVar(std::vector<std::string> args){
+//     if(args.size() == 1){
+//         std::cout << "Error: No arguments given" << std::endl;
+//     }else{
+//         std::string var = args[1];
+//         std::string val = args[2];
+//         setenv(var.c_str(), val.c_str(), 1);
+//     }
+// }
 
 void execute(struct Command cmd){
     std::string bin = cmd.args->at(0);

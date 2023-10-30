@@ -19,5 +19,5 @@ fork immediately
 
 
 #comments dont work -- fixed
-echo $ENVVAR doesn't work
+echo $ENVVAR doesn't work -- fixed
 quit and exit dont work--fixed most likely
