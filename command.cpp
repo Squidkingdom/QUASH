@@ -20,6 +20,7 @@ struct Process
   int id;
   int pid;
   bool isBackground;
+  string cmd = "";
 };
 
 static int totalJobs;
@@ -151,8 +152,36 @@ void clearFifo(){
     }
 }
 
+void cd(std::vector<std::string> args){
+    if(args.size() == 1){
+        chdir(getenv("HOME"));
+    }else{
+        chdir(args[1].c_str());
+    }
+}
+
+void exportVar(std::vector<std::string> args){
+    if(args.size() == 1){
+        std::cout << "Error: No arguments given" << std::endl;
+    }else{
+        vector<string> subArgs = split(args[1], '=');
+        // std::string var = args[1];
+        // std::string val = args[2];
+        setenv(subArgs[0].c_str(), subArgs[1].c_str(), 1);
+    }
+}
+
 void setupIPC(vector<struct Command> lineCmd) {
     pid_t lcPid;
+    if (lineCmd[0].args->at(0) == "export") {
+        exportVar(*lineCmd[0].args);
+    }
+    if (lineCmd[0].args->at(0) == "exit" || lineCmd[0].args->at(0) == "quit") {
+        exit(0);
+    }
+    if (lineCmd[0].args->at(0) == "cd") {//calling cd at the start because it only changes dir of current process so parent must do it
+        cd(*lineCmd[0].args);
+    }
     int bg = lineCmd[0].isBackground;
     if (bg) {
         signal(SIGCHLD, handleChildDone);
@@ -186,6 +215,13 @@ void setupIPC(vector<struct Command> lineCmd) {
             waitpid(lcPid, NULL, 0);
         }
         else{
+            for(int i=0; i<lineCmd.size(); i++) {
+                for(int j=0; j<lineCmd[i].args->size(); j++) {
+                    myJobs[totalJobs].cmd.append(" ");
+                    myJobs[totalJobs].cmd.append(lineCmd[i].args->at(j));//append each piece of the command
+                }
+            }
+            myJobs[totalJobs].cmd.append(" &");
             myJobs[totalJobs].id = nextId;
             myJobs[totalJobs].pid = lcPid;
             std::cout << "[" << nextId << "] PID: " << lcPid << std::endl;
@@ -198,17 +234,18 @@ void setupIPC(vector<struct Command> lineCmd) {
 
 void echo(std::vector<std::string> args){  
     for(int i = 1; i < args.size(); i++){
-        std::cout << args[i] << " ";
+        if (args[i][0] == '$') {
+            string envVar = "";
+            envVar = getenv(args[i].erase(0, 1).c_str());
+            // if (getenv(args[i].erase(0, 1).c_str()) == NULL) {
+            //     std::cout<<"Environment Variable not found"<<" ";
+            // }
+            std::cout<<envVar<<" ";
+        } else {
+            std::cout << args[i] << " ";
+        }
     }
     std::cout << std::endl;
-}
-
-void cd(std::vector<std::string> args){
-    if(args.size() == 1){
-        chdir(getenv("HOME"));
-    }else{
-        chdir(args[1].c_str());
-    }
 }
 
 void pwd(){
@@ -218,22 +255,24 @@ void pwd(){
 }
 
 void jobs(){
-
+    for(int i=0; i<totalJobs; i++) {
+        std::cout << "[" << myJobs[i].id << "] " << myJobs[i].pid << myJobs[i].cmd << std::endl;
+    }
 }
 
 void kill(std::vector<std::string> args){
-
+    kill(stoi(args.at(2)), stoi(args.at(1)));
 }
 
-void exportVar(std::vector<std::string> args){
-    if(args.size() == 1){
-        std::cout << "Error: No arguments given" << std::endl;
-    }else{
-        std::string var = args[1];
-        std::string val = args[2];
-        setenv(var.c_str(), val.c_str(), 1);
-    }
-}
+// void exportVar(std::vector<std::string> args){
+//     if(args.size() == 1){
+//         std::cout << "Error: No arguments given" << std::endl;
+//     }else{
+//         std::string var = args[1];
+//         std::string val = args[2];
+//         setenv(var.c_str(), val.c_str(), 1);
+//     }
+// }
 
 void execute(struct Command cmd){
     std::string bin = cmd.args->at(0);
