@@ -7,7 +7,7 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${fileDirname}/Test.cpp",
+                "${fileDirname}/Main.cpp",
                 "${fileDirname}/parser.cpp",
                 "${fileDirname}/command.cpp",
                 "-o",
