@@ -17,6 +17,6 @@ int main() {
     // string TSTCMD = "cat < files.txt | grep '*.c' > out.txt &";
     vector<struct Command> linecmd;
     tokenize(TSTCMD, &linecmd);
-    setupIPC(&linecmd);
+    spawnExecutor(&linecmd);
     
 }

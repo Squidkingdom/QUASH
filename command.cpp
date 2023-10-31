@@ -82,12 +82,12 @@ void chainExe(vector<struct Command> lineCmd)
 
             //pipe to next process
             if (HAS_PIPE){
-                // dup2(fd[i-1][0], STDIN_FILENO);
-                char buf[1024];
-                int n = read(fd[i-1][0], buf, 1024);
-                printf("read %d bytes\n", n);
-                printf("read: %s\n", buf);
-                printf("has pipe");
+                dup2(fd[i-1][0], STDIN_FILENO);
+                // char buf[1024];
+                // int n = read(fd[i-1][0], buf, 1024);
+                // printf("read %d bytes\n", n);
+                // printf("read: %s\n", buf);
+                // printf("has pipe");
             }
             if (WILL_PIPE){
                 dup2(fd[i][1], STDOUT_FILENO);
@@ -171,8 +171,9 @@ void exportVar(std::vector<std::string> args){
     }
 }
 
-void setupIPC(vector<struct Command> lineCmd) {
+void spawnExecutor(vector<struct Command> lineCmd) {
     pid_t lcPid;
+    
     if (lineCmd[0].args->at(0) == "export") {
         exportVar(*lineCmd[0].args);
     }

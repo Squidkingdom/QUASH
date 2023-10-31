@@ -31,6 +31,6 @@ typedef struct job {
 
 void execute(struct Command cmd);
 string tag();
-void setupIPC(vector<struct Command> lineCmd);
+void spawnExecutor(vector<struct Command> lineCmd);
 #endif
 

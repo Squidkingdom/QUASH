@@ -22,16 +22,25 @@ using namespace std;
 
 int main() {
     bool run = true;
+    // Make directory for BG process to write to.
     mkdir("/tmp/Quash", 0777);
+
     while(run) {
-        usleep(2000);
-        std::string userInput = "";
-        flush(std::cout);
+        usleep(2000); //Fixes timing issue with tag printing
+
+        //Get user input
+        string userInput = "";
+        flush(cout);
         std::cout<<tag();
-        std::getline(std::cin, userInput);
+        std::getline(cin, userInput);
+
+        //Parse user input
         vector<struct Command> lineCmd;
         tokenize(userInput, &lineCmd);
-        setupIPC(lineCmd);
+
+        //Execute user input
+        if (lineCmd.size() > 0)
+            spawnExecutor(lineCmd);
     }
 
     return 0;
