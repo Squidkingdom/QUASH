@@ -12,12 +12,15 @@
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
-#include "command.h"
+#include "executive.h"
 #include "parser.h"
+#include "built-ins.h"
 
 using namespace std;
 
 
+
+//TODO remove from jobs
 
 
 int main() {
@@ -35,12 +38,17 @@ int main() {
         std::getline(cin, userInput);
 
         //Parse user input
+        // {[cat, a.txt], [grep, -o, World, >>, b.txt]}
+        // cat a.txt | "grep -o" World > b.txt  
+        // lineCmd is comprised of subCmds in the form of `Stuct Command`
         vector<struct Command> lineCmd;
         tokenize(userInput, &lineCmd);
 
         //Execute user input
         if (lineCmd.size() > 0)
             spawnExecutor(lineCmd);
+
+        
     }
 
     return 0;

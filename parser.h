@@ -7,21 +7,22 @@
 #include <sstream>
 #include <cstring>
 #include <stack>
+#include "executive.h"
+#include "parser.h"
 using namespace std;
 typedef struct Command {
-        vector<string>* args = new vector<string>;
+        vector<string> args;
         bool isBackground = false; // unilateral between all subcmds in same linecmd
-        bool hasRead = false;
+        bool hasRead = false; // < 
         string readFrom= "";
-        bool hasRedirect = false; //first subcmd cannot have hasRedirect.
-        bool redirectAppend = false;
+        bool hasRedirect = false; // > //first subcmd cannot have hasRedirect.
+        bool redirectAppend = false; // >>
         string redirectTo = "";
     }Command;
 
 void tokenize (string s, vector<struct Command>* linecmd);
 string expandEnvironmentVariables(const string& input);
-vector<string> split (const string &s, char delim);
-string trim(string s, char delim);
+
         //command
         //is background
 
