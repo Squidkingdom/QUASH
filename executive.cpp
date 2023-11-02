@@ -193,7 +193,7 @@ void setupIPC(vector<struct Command> lineCmd)
                 close(fdin);
             }
 
-            // If we have to write to a file, set the output to the file. use O_TRUNC to overwrite the file
+            // If we have to write to a file, set the output to the file. use O_TRUNC to overwrite the file (>)
             if (cmd.hasRedirect)
             {
                 int fdout = 0;
